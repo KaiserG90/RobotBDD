@@ -1,0 +1,37 @@
+#!/usr/bin/env ruby
+$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
+require 'robot'
+@game = Robot::Game.new(STDOUT)
+
+
+#place a new robot on the table
+	def place(cmd)
+		pars = cmd.split(',')
+		x = pars[0].to_i
+		y = pars[1].to_i
+		f = pars[2]
+		@game.submit_command("PLACE #{cmd}")
+	end
+
+# read a file
+if ARGV.empty?
+	ARGF.each do |line|
+		@game.submit_command(line.chomp.strip)
+	end
+end
+# read standard input
+skip_iteration = false
+ARGV.each_with_index do |cmd,index|
+	unless skip_iteration
+		case cmd
+			when /PLACE/
+				raise ArgumentError, "Command is not valid" unless ARGV[index+1].include? ','
+				place(ARGV[index+1])
+				skip_iteration = true
+			else
+				@game.submit_command(cmd)
+		end
+	else
+		skip_iteration = false
+	end
+end
